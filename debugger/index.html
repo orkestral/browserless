@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Smily Chat</title>
+
+  <meta charset="utf-8">
+  <meta name="viewport"                  content="width=device-width, initial-scale=1">
+  <meta property="og:url"                content="https://view.smily.pro/" />
+  <meta property="og:title"              content="Smily Chat View" />
+  <meta property="og:description"        content="View Browser Smily Chat" />
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:500">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/codemirror.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/hint/show-hint.css">
+
+  <style>
+  * {
+    font-family: Consolas, monaco, monospace;
+    margin: 0;
+    padding: 0;
+    outline: none;
+    box-sizing: border-box;
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    height: 60px;
+    padding: 13px;
+    background-color: #089c4b;
+    color: #fff;
+    box-shadow: 0 5px 10px 0 rgba(0,0,0,.1);
+    display: flex;
+    align-items: center;
+  }
+  header h1 {
+    margin-left: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    font-family: Montserrat,Helvetica,Arial,sans-serif;
+    letter-spacing: 0.01em;
+  }
+  header section span,
+  header section a {
+    font-size: 14px;
+    margin: 0 5px;
+    cursor: pointer;
+  }
+  header section a {
+    height: 25px;
+  }
+  html, body, main {
+    width: 100%;
+    height: 100%;
+  }
+  iframe {
+    border: none;
+  }
+  .links {
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    vertical-align: middle;
+    justify-content: center;
+  }
+  @keyframes fade {
+    0%,100% { opacity: 0 }
+    10%, 90% { opacity: 1 }
+  }
+  .resizer {
+    width: 5px;
+    background: #ccc;
+    cursor: col-resize;
+  }
+  .flex-hz {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 130px);
+  }
+  #code-mount {
+    font-size: 16px;
+    line-height: 32px;
+    position: relative;
+    height: 100%;
+    width: calc(50% - 2.5px);
+    min-width: 150px;
+    max-width: 75%;
+    overflow: hidden;
+  }
+  .run-container {
+    cursor: pointer;
+    color: white;
+    border: none;
+    font: inherit;
+    padding: 2px 8px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    z-index: 10;
+  }
+  .execute-button {
+    background: #043a22;
+    border-radius: 17px;
+    border: none;
+    fill: #fff;
+    height: 34px;
+    margin: 10px;
+    width: 34px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  #frame-mount::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    opacity: .4;
+    z-index: -1;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="isolation:isolate" viewBox="1123.044 453.491 93.911 147.019" height="150"><linearGradient id="_lgradient_0" x1="14.644660940672633%" y1="14.644660940672615%" x2="85.35533905932738%" y2="85.35533905932738%"><stop offset="0%" stop-opacity="1" style="stop-color:rgb(102,16,242)"/><stop offset="98.26086956521739%" stop-opacity="1" style="stop-color:rgb(0,123,255)"/></linearGradient><path d=" M 1180.143 521.337 L 1193.478 527.466 L 1207.698 534.002 C 1212.807 536.35 1216.956 542.822 1216.956 548.445 L 1216.956 559.839 L 1216.956 571.233 C 1216.956 576.856 1212.807 583.328 1207.698 585.676 L 1193.478 592.212 L 1179.257 598.748 C 1174.148 601.097 1165.852 601.097 1160.742 598.748 L 1146.522 592.212 L 1132.302 585.676 C 1127.193 583.328 1123.044 576.856 1123.044 571.233 L 1123.044 559.839 L 1123.044 548.445 C 1123.044 547.762 1123.106 547.067 1123.222 546.367 L 1123.222 468.669 C 1123.222 463.978 1126.844 458.993 1131.305 457.544 L 1142.555 453.889 C 1147.016 452.439 1150.637 455.071 1150.637 459.761 L 1150.637 525.574 L 1150.659 525.564 C 1150.644 525.577 1150.636 525.584 1150.637 525.585 L 1166.521 543.39 L 1141.468 543.944 C 1141.093 543.931 1140.817 543.934 1140.632 543.956 C 1139.762 544.057 1139.006 544.357 1138.368 544.854 C 1137.607 545.508 1137.519 546.14 1138.1 546.751 L 1178.18 589.359 C 1178.858 589.988 1179.859 590.225 1181.188 590.071 C 1181.371 590.05 1181.689 589.985 1182.141 589.876 C 1182.903 589.647 1183.457 589.314 1183.802 588.878 C 1184.146 588.443 1184.201 588.013 1183.966 587.587 L 1168.776 557.871 L 1194.905 556.344 C 1195.092 556.35 1195.368 556.332 1195.735 556.289 C 1196.56 556.194 1197.252 555.959 1197.812 555.583 C 1198.588 555.068 1198.823 554.49 1198.516 553.847 L 1180.143 521.337 Z " fill-rule="evenodd" fill="url(#_lgradient_0)"/><g opacity="0.4"><path d=" M 1150.712 525.585 L 1166.521 543.306 L 1161.397 543.42 L 1150.637 525.629 C 1150.636 525.627 1150.661 525.612 1150.712 525.585 Z  M 1140.925 549.67 L 1178.18 589.276 C 1178.756 589.811 1179.566 590.062 1180.612 590.031 L 1182.303 593.339 C 1182.537 593.764 1182.483 594.194 1182.138 594.629 C 1181.794 595.066 1181.24 595.398 1180.478 595.628 C 1180.026 595.736 1179.707 595.801 1179.525 595.822 C 1178.196 595.976 1177.194 595.739 1176.517 595.111 L 1136.437 552.502 C 1135.855 551.891 1135.943 551.259 1136.705 550.606 C 1137.343 550.108 1138.099 549.809 1138.969 549.707 C 1139.154 549.686 1139.43 549.682 1139.804 549.695 L 1140.925 549.67 Z  M 1171.623 563.358 L 1168.776 557.787 L 1194.905 556.26 C 1194.925 556.261 1194.945 556.262 1194.967 556.262 L 1196.853 559.599 C 1197.159 560.241 1196.925 560.82 1196.148 561.334 C 1195.588 561.71 1194.896 561.945 1194.071 562.04 C 1193.705 562.083 1193.428 562.102 1193.242 562.095 L 1171.623 563.358 Z " fill-rule="evenodd" fill="rgb(0,0,0)" fill-opacity="0.2"/></g></svg>');
+  }
+  #frame-mount {
+    width: calc(50% - 2.5px);
+    flex: 5;
+    position: relative;
+    border-left: 1px solid #ccc;
+  }
+  #hints {
+    font-size: 18px;
+    padding-left: 10px;
+  }
+  footer {
+    background: #333;
+    height: 70px;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  footer p {
+    animation: fade 10s ease;
+  }
+  footer p,
+  footer a {
+    color: white;
+  }
+  .CodeMirror {
+    font-family: inherit;
+    height: 100%;
+    overflow: scroll;
+    padding-top: 5px;
+    font-size: 15px;
+  }
+  .CodeMirror-scroll {
+    overflow-y: auto;
+    overflow-x: auto;
+  }
+  .CodeMirror-hints {
+    max-width: 400px;
+    max-height: 300px;
+  }
+  .CodeMirror-hint-information {
+    border-top: 1px solid #ccc;
+    padding: 5px;
+  }
+  .CodeMirror-hint-information h4 {
+    background-color: #fefefe;
+    padding: 2px
+  }
+  .CodeMirror-hint-information a {
+    color: #3367d6;
+  }
+  .CodeMirror-hint-information .info a {
+    display: block;
+    font-weight: bold;
+    text-align: right;
+  }
+  .CodeMirror-hint-information .description {
+    line-height: 1.5;
+    display: inline;
+    font-family: 'Helvetica', sans-serif;
+  }
+  .CodeMirror-hint-information ul {
+    margin-left: 15px;
+  }
+  /* Color scheme */
+  .cm-s-nova.CodeMirror {
+    background-color:#3C4C55;
+    color:#C5D4DD;
+    line-height:1.4375;
+  }
+  .cm-s-nova .cm-comment { color: #899BA6; }
+  .cm-s-nova .cm-keyword, .cm-s-nova .cm-property { color:#DADA93; }
+  .cm-s-nova .cm-atom,.cm-s-nova .cm-number { color:#83AFE5; }
+  .cm-s-nova .cm-node,.cm-s-nova .cm-tag { color:#D18EC2; }
+  .cm-s-nova .cm-string { color:#7FC1CA; }
+  .cm-s-nova .cm-variable,.cm-s-nova .cm-qualifier { color:#9A93E1; }
+  .cm-s-nova .cm-operator { color: #F2C38F }
+
+  .cm-s-nova pre {
+    padding:0;
+  }
+
+  .cm-s-nova .CodeMirror-gutters {
+    border:none;
+    border-right:10px solid transparent;
+    background-color:transparent;
+  }
+
+  .cm-s-nova .CodeMirror-linenumber {
+    padding:0;
+    color:#e0e2e5;
+  }
+
+  .cm-s-nova .CodeMirror-guttermarker { color: #1db336; }
+  .cm-s-nova .CodeMirror-guttermarker-subtle { color: #e0e2e5; }
+
+  .cm-s-nova .CodeMirror-cursor {
+    width: auto;
+    border: 0;
+    background: rgba(155,157,162,0.37);
+    z-index: 1;
+  }
+  .box-shadow-menu {
+    color: white;
+    text-decoration: none;
+    font-size: 30px;
+    margin-right: 20px;
+  }
+  .side-bar {
+    font-family: Montserrat,Helvetica,Arial,sans-serif;
+    left: 0;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 450px;
+    background: #333;
+    z-index: 10;
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(-100%);
+    color: white;
+    padding: 20px;
+  }
+  .side-bar h2 {
+    padding-bottom: 20px;
+  }
+  .side-bar a {
+    color: white;
+    display: block;
+    padding: 4px 2px;
+  }
+  .side-bar.active {
+    box-shadow: 0 0 20px #333;
+    transform: translateX(0);
+  }
+  .close-button {
+    cursor: pointer;
+    color: white;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 30px;
+    line-height: 20px;
+    padding: 20px;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  </style>
+</head>
+<body>
+
+<main>
+  <header>
+      <a onclick="return toggleMenu();" href="#" class="box-shadow-menu">&#9776;</a>
+      
+      <h1>Smily Chat</h1>
+
+      <div class="run-container">
+      </div>
+    <section class="links">
+      
+    </section>
+  </header>
+  <div class="side-bar">
+    <button onclick="return toggleMenu();" class="close-button">✕</button>
+    <h2>Sessions</h2>
+    <div class="session-container"></div>
+  </div>
+  <div class="flex-hz">
+    <div class="resizer"></div>
+    <section id="frame-mount">
+      <iframe width="100%" height="100%">
+      </iframe>
+    </section>
+  </div>
+  <footer>
+      <div id="hints"></div>
+  </footer>
+</main>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/codemirror.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/mode/javascript/javascript.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/edit/matchbrackets.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/edit/closebrackets.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/comment/comment.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/hint/show-hint.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/addon/hint/javascript-hint.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.31.0/keymap/sublime.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+
+<script>
+  window.__is_demo_machine__ = 'view.smily.pro' === window.location.host && !window.location.search.includes('?token=');
+  const { port, hostname, protocol } = window.location;
+  const baseURL = `${protocol}//${hostname}${port ? `:${port}` : ''}`;
+  const secure = /(https)|(wss)/g.test(protocol);
+  const AUTO_COMPLETE_AFTER_KEY = /^[a-zA-Z0-9_@(]$/;
+  const globalVars = [
+    { text: 'debugger;', description: 'The debugger statement invokes any available debugging functionality, such as setting a breakpoint. If no debugging functionality is available, this statement has no effect.' },
+    { text: 'await', description: 'The await operator is used to wait for a Promise. It can only be used inside an async function.' },
+    { text: 'page' },
+    { text: 'console', description: 'Outputs a message to the Web Console.' },
+    { text: 'function', description: 'A function is a code snippet that can be called by other code or by itself, or a variable that refers to the function. When a function is called, arguments are passed to the function as input, and the function can optionally return an output. A function in JavaScript is also an object.' },
+    { text: 'const', description: 'Constants are block-scoped, much like variables defined using the let statement. The value of a constant cannot change through re-assignment, and it can\'t be redeclared.' },
+    { text: 'var', description: 'The variable statement declares a variable, optionally initializing it to a value.' },
+    { text: 'let', description: 'The let statement declares a block scope local variable, optionally initializing it to a value.' },
+  ];
+  const key = 'smily_code';
+
+  const $intro = document.querySelector('.intro');
+  const $resizer = document.querySelector('.resizer');
+  const $executeBtn = document.querySelector('.run-container');
+  const $codeText = document.querySelector('#code-mount textarea');
+  const $debugFrame = document.querySelector('#frame-mount iframe');
+  const $codePanel = document.querySelector('#code-mount');
+  const $resultPanel = document.querySelector('#frame-mount');
+  const $about = document.querySelector('#about');
+  const $download = document.querySelector('#download');
+  const $sideBar = document.querySelector('.side-bar');
+  const $sessionContainer = document.querySelector('.session-container');
+
+  const save = (code) => window.localStorage.setItem(key, code);
+  const previousCode = window.localStorage.getItem(key);
+  const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const README = `
+# Smily Starter-pack
+This simple starter-pack gets you up and running with all the code you used in the debugger. Just install and run!
+
+## Installation
+
+1. NodeJS >= 8 is installed
+2. 'npm install'
+3. 'npm start'
+
+`;
+  const getScript = (body) => `
+const puppeteer = require('puppeteer');
+
+(async() => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  ${body}
+  browser.close();
+})();
+`;
+  const getPackageJson = (version) => `{
+  "name": "smily-export",
+  "description": "Exported package from smily, ready to go!",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "puppeteer": "${version}"
+  }
+}`;
+  let puppeteerVersion = '';
+  let parameters = {};
+  let debuggerVersion = '';
+  let pageMethods = [];
+  let runningSessions = [];
+  let isSidebarOpen = false;
+
+  // Parse the search string to get url parameters.
+  const search = window.location.search;
+
+  const toggleMenu = () => {
+    isSidebarOpen = !isSidebarOpen;
+
+    if (isSidebarOpen) {
+      $sideBar.classList.add('active');
+    } else {
+      $sideBar.classList.remove('active');
+    }
+
+    fetchSessions();
+  };
+
+  search.substr(1).split('&').forEach(function (entry) {
+    let eq = entry.indexOf('=');
+    if (eq >= 0) {
+      parameters[decodeURIComponent(entry.slice(0, eq))] =
+        decodeURIComponent(entry.slice(eq + 1));
+    }
+  });
+
+  const onEditScript = (script) => parameters.script = script;
+
+  const hints = [
+    
+    `Thank You for use Smily Chat Inc.`,
+    `Access Https://smily.chat  for more informations`,
+  ];
+
+  if (window.__is_demo_machine__) {
+    hints.push(``);
+  }
+
+  setHint = () => {
+    const text = rand(hints);
+    document.querySelector('#hints').innerHTML = `<p>${text}</p>`;
+  };
+  setHint();
+  setInterval(setHint, 10000);
+
+  if (previousCode) {
+    $codeText.innerHTML = previousCode;
+  }
+
+  if (parameters.script) {
+    $codeText.innerHTML = parameters.script;
+  }
+
+  const getLeft = (initialElem) => {
+    let pt = 0;
+    let elem = initialElem;
+    while (elem.offsetParent) {
+      pt += elem.offsetLeft;
+      elem = elem.offsetParent;
+    }
+    return pt;
+  }
+
+  function fetchSessions() {
+    if (!isSidebarOpen) return;
+
+    return fetch(`${baseURL}/sessions`, {
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+      }
+    })
+    .then(res => res.json())
+    .then((res) => {
+      const filtered = res.filter((s) => s.type === 'page');
+      const sessions = filtered.map((session) => `${session.title}\n`);
+      $sessionContainer.innerHTML = sessions.join('\n');
+      setTimeout(fetchSessions, 2500);
+    })
+  }
+
+  function getHints(token) {
+    if (token.type === 'property') {
+      return pageMethods.filter((vars) => vars.text.includes(token.string)).slice(0, 5);
+    }
+    return globalVars.filter((vars) => vars.text.includes(token.string));
+  }
+
+  CodeMirror.registerHelper('hint', 'javascript', (editor, options) => {
+    const cur = editor.getCursor();
+    const token = editor.getTokenAt(cur);
+    const tokenStart = token.type !== null && /"|\w/.test(token.string[0])
+      ? token.start
+      : token.end;
+
+    if (token.type === null) {
+      return;
+    }
+
+    const list = getHints(token);
+
+    const results = {
+      list,
+      from: {line: cur.line, column: tokenStart},
+      to: {line: cur.line, column: token.end},
+    };
+
+    if (results && results.list && results.list.length > 0) {
+      results.from = CodeMirror.Pos(results.from.line, results.from.column);
+      results.to = CodeMirror.Pos(results.to.line, results.to.column);
+      CodeMirror.signal(editor, 'hasCompletion', editor, results, token);
+    }
+
+    return results;
+  });
+
+  function onHasCompletion(cm, data, onHintInformationRender) {
+    let information;
+
+    CodeMirror.on(data, 'select', (ctx, el) => {
+      if (!information) {
+        const hintsUl = el.parentNode;
+
+        information = document.createElement('div');
+        information.className = 'CodeMirror-hint-information';
+        hintsUl.appendChild(information);
+
+        let onRemoveFn;
+        hintsUl.addEventListener(
+          'DOMNodeRemoved',
+          (onRemoveFn = event => {
+            if (event.target === hintsUl) {
+              hintsUl.removeEventListener('DOMNodeRemoved', onRemoveFn);
+              information = null;
+              onRemoveFn = null;
+            }
+          }),
+        );
+      }
+
+      const description = document.createElement('span');
+        description.innerText = ctx.description;
+        description.className += 'description';
+
+      const args = document.createElement('ul');
+        args.innerHTML = ctx.args;
+        args.className += 'args';
+
+      const apiText = ctx.args ?
+        '<h4>API</h4>' + args.outerHTML :
+        '';
+
+      const readMoreHref = ctx.href ?
+        '<a href="' + ctx.href + '" target="_blank">...Read more</a>' :
+        '';
+
+      const descriptionText = ctx.description ?
+        `<h4>Description</h4>` + description.outerHTML :
+        '';
+
+      information.innerHTML =
+        '<div class="content">' +
+          apiText +
+          descriptionText +
+          readMoreHref +
+        '</div>';
+    });
+  }
+
+  async function execute() {
+    const code = editor.getValue();
+    save(code);
+
+    loadIframe(code);
+  }
+
+  const editor = CodeMirror.fromTextArea($codeText, {
+    lineNumbers: true,
+    lineWrapping: true,
+    showCursorWhenSelecting: true,
+    mode: {
+      name: 'javascript',
+      globalVars: true
+    },
+    hintOptions: {
+      closeOnUnfocus: false,
+      completeSingle: false,
+    },
+    theme: 'nova',
+    allowDropFileTypes: ['text/javascript'],
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    extraKeys: {
+      'Ctrl-Space': 'autocomplete',
+      'Tab': 'autocomplete',
+      'Ctrl-Enter': execute,
+    },
+    keyMap: 'sublime',
+  });
+  const charWidth = editor.defaultCharWidth()
+  const basePadding = 4;
+
+  editor.on('keyup', (cm, event) => AUTO_COMPLETE_AFTER_KEY.test(event.key) && editor.execCommand('autocomplete'));
+  editor.on('hasCompletion', onHasCompletion);
+  editor.on('renderLine', (cm, line, elt) => {
+    const off = CodeMirror.countColumn(line.text, null, cm.getOption('tabSize')) * charWidth;
+    elt.style.textIndent = '-' + off + 'px';
+    elt.style.paddingLeft = (basePadding + off) + 'px';
+  });
+
+  const loadIframe = (code) => {
+    if (document.querySelector('.intro')) {
+      $intro.parentElement.removeChild($intro);
+    }
+
+    const stringifiedCode = encodeURIComponent(code);
+    document.cookie = `smily_code=${stringifiedCode}`;
+    const wsLocation = `${hostname}${port ? `:${port}` : ''}/debugger`;
+
+    $debugFrame.src = `/devtools/inspector.html?${secure ? 'wss' : 'ws'}=${wsLocation}`;
+  };
+
+  $resizer.addEventListener('mousedown', (evt) => {
+    evt.preventDefault();
+
+    $resultPanel.style['pointer-events'] = 'none';
+
+    let onMouseMove = moveEvent => {
+      if (moveEvent.buttons === 0) {
+        return onMouseUp();
+      }
+
+      $codePanel.style.width = `${moveEvent.clientX}px`;
+    };
+
+    let onMouseUp = () => {
+      $resultPanel.style['pointer-events'] = 'initial';
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      onMouseMove = null;
+      onMouseUp = null;
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+
+  $download.addEventListener('click', async() => {
+    const packageJson = getPackageJson(puppeteerVersion);
+    const indexJs = getScript(editor.getValue());
+    let zip = new JSZip();
+    zip.file("index.js", indexJs);
+    zip.file('package.json', packageJson);
+    zip.file('README.md', README);
+    const content = await zip.generateAsync({type:"blob"})
+    saveAs(content, `smily-${Date.now()}.zip`);
+  });
+
+  $executeBtn.addEventListener('click', execute);
+
+  editor.on('change', () => {
+    onEditScript(editor.getValue());
+  });
+
+  fetch(`${baseURL}/introspection`, {
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+    }
+  })
+  .then(res => res.json())
+  .then((hints) => pageMethods = pageMethods.concat(hints))
+
+  fetch(`${baseURL}/json/version`, {
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+    }
+  })
+  .then(res => res.json())
+  .then((res) => {
+    let aboutTitle = '';
+    debuggerVersion = res['Debugger-Version'];
+    for (let key in res) {
+      aboutTitle = `${aboutTitle}${key} = ${res[key]}\n`;
+    }
+    $about.title = aboutTitle;
+    puppeteerVersion = res['Puppeteer-Version'];
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Built Assets
+node_modules/
+build/
+external/
+debugger/devtools
+hints.json
+hosts.json
+protocol.json
+version.json
+
+# MAC
+.DS_Store
+
+# Temp files
+*.log
+
+# Caches
+.sass-cache
+_site
+
+# Coverage
+coverage
